@@ -2,14 +2,11 @@ from diffusers import StableDiffusionPipeline, StableVideoDiffusionPipeline
 from diffusers.utils import export_to_video
 import torch
 
-# Clear GPU cache (optional, not needed for CPU)
-# torch.cuda.empty_cache()  # Comment out since no GPU
-
 # Step 1: Generate Image (Stable Diffusion)
 sd_pipe = StableDiffusionPipeline.from_pretrained(
     "runwayml/stable-diffusion-v1-5",
     torch_dtype=torch.float32,  # Use float32 for CPU
-).to("cpu")
+).to("cpu")  # Changed from cuda to cpu
 
 image = sd_pipe("A king in a vibrant Indian palace dancing with seven fish, colorful and funny").images[0]
 image = image.resize((256, 256))  # Lower resolution
@@ -20,7 +17,7 @@ svd_pipe = StableVideoDiffusionPipeline.from_pretrained(
     "stabilityai/stable-video-diffusion-img2vid",
     torch_dtype=torch.float32,  # Use float32 for CPU
     variant="fp16"
-).to("cpu")
+).to("cpu")  # Changed from cuda to cpu
 
 frames = svd_pipe(
     image,
