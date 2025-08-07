@@ -1,28 +1,13 @@
-from diffusers import StableDiffusionPipeline, StableVideoDiffusionPipeline
-from diffusers.utils import export_to_video
+from diffusers import DiffusionPipeline
 import torch
 
-# Step 1: Generate Image (Stable Diffusion)
-sd_pipe = StableDiffusionPipeline.from_pretrained(
-    "runwayml/stable-diffusion-v1-5",
-    torch_dtype=torch.float32,  # Use float32 for CPU
-).to("cpu")  # Changed from cuda to cpu
+pipe = DiffusionPipeline.from_pretrained(
+    "cerspense/zeroscope_v2_576w",
+    torch_dtype=torch.float16
+).to("cuda")
 
-image = sd_pipe("A king in a vibrant Indian palace dancing with seven fish, colorful and funny").images[0]
-image = image.resize((256, 256))  # Lower resolution
-image.save("generated_image.png")
+pipe.enable_xformers_memory_efficient_attention()  # Optional but recommended
 
-# Step 2: Generate Video (Stable Video Diffusion)
-svd_pipe = StableVideoDiffusionPipeline.from_pretrained(
-    "stabilityai/stable-video-diffusion-img2vid",
-    torch_dtype=torch.float32,  # Use float32 for CPU
-    variant="fp16"
-).to("cpu")  # Changed from cuda to cpu
-
-frames = svd_pipe(
-    image,
-    num_frames=8,  # Fewer frames
-    decode_chunk_size=2,  # Smaller chunks
-).frames
-
-export_to_video(frames, "output_video.mp4", fps=8)
+prompt = "A futuristic cityscape at sunset"
+video_frames = pipe(prompt, num_frames=24, height=320, width=576).frames
+video_frames[0].save("output.gif")
